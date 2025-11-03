@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Quiz Interativo — Estudo por Perguntas e Respostas</title>
+<style>
+  :root{
+    --bg:#0b1220;
+    --card:#121a2b;
+    --muted:#93a0b4;
+    --text:#eaf0ff;
+    --accent:#5aa9ff;
+    --accent2:#7af7c4;
+    --danger:#ff6b6b;
+    --ok:#3ddc97;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Ubuntu;
+    background:linear-gradient(180deg,#0b1220 0%,#0c1528 100%);
+    color:var(--text);
+  }
+  header{
+    padding:24px 16px; border-bottom:1px solid #1f2a44;
+    position:sticky; top:0; background:#0c1426cc; backdrop-filter: blur(8px);
+    z-index: 10;
+  }
+  h1{font-size:22px; margin:0 0 4px; letter-spacing:.2px}
+  .sub{color:var(--muted); font-size:13px}
+  main{max-width:980px; margin:18px auto 64px; padding:0 16px}
+  .grid{display:grid; gap:16px}
+  @media(min-width:900px){ .grid{grid-template-columns: 1.1fr .9fr} }
+  .card{
+    background:var(--card); border:1px solid #223252; border-radius:16px; padding:16px;
+    box-shadow: 0 10px 35px rgba(0,0,0,.25);
+  }
+  .row{display:flex; gap:8px; flex-wrap: wrap}
+  button, select, input, textarea{
+    font:inherit; color:inherit;
+  }
+  button{
+    background: linear-gradient(180deg,var(--accent) 0%, #3c86e6 100%);
+    border: none; color:#041225; padding:10px 14px; border-radius:12px;
+    font-weight:600; cursor:pointer; transition:.2s transform, .2s filter;
+  }
+  button.secondary{
+    background:#1b2a48; color:#d7e2ff; border:1px solid #2a3c65;
+  }
+  button.ghost{
+    background:transparent; border:1px dashed #36507f; color:#cfe1ff;
+  }
+  button:active{ transform: translateY(1px) }
+  label{font-size:13px; color:var(--muted)}
+  input[type="number"], select, textarea{
+    background:#0e172a; border:1px solid #2a3c65; border-radius:12px; padding:10px;
+    width:100%;
+  }
+  textarea{min-height:140px; resize:vertical}
+  .muted{color:var(--muted)}
+  .pill{display:inline-block; padding:2px 8px; border-radius:999px; border:1px solid #334772; color:#cfe1ff; font-size:12px}
+  .q{
+    border:1px solid #2a3c65; border-radius:14px; padding:14px; margin:12px 0; background:#0f192d;
+  }
+  .q h3{margin:0 0 8px; font-size:16px}
+  .opt{display:flex; align-items:flex-start; gap:10px; padding:8px 10px; border-radius:10px; border:1px solid transparent}
+  .opt input{margin-top:3px}
+  .opt.correct{border-color:#1f5f4a; background:#122b23}
+  .opt.incorrect{border-color:#70363b; background:#2b1216}
+  .badge{font-size:12px; padding:2px 8px; border-radius:999px; margin-left:6px; background:#17233d; border:1px solid #2b4477}
+  .ok{color:var(--ok)} .danger{color:var(--danger)}
+  .divider{height:1px; background:#213055; margin:14px 0}
+  .right{display:flex; justify-content:flex-end}
+  .score{
+    font-weight:800; font-size:20px; letter-spacing:.2px
+  }
+  a.link{color:var(--accent2); text-decoration: underline dotted}
+  .small{font-size:12px}
+  .hidden{display:none}
+  .table{width:100%; border-collapse:collapse}
+  .table th, .table td{border-bottom:1px solid #223252; padding:8px 6px; text-align:left; font-size:14px}
+</style>
+</head>
+<body>
+<header>
+  <h1>Quiz Interativo — Estudo por Perguntas e Respostas</h1>
+  <div class="sub">Carregue suas perguntas a partir de JSON (arquivo ou colando no campo). Embaralhe, responda e exporte seus resultados.</div>
+</header>
+
+<main class="grid">
+  <!-- ESQUERDA: EXECUÇÃO DO QUIZ -->
+  <section class="card">
+    <div class="row" style="justify-content:space-between; align-items:center">
+      <div>
+        <span class="pill">Execução do Quiz</span>
+        <div class="small muted">Selecione as opções e clique em <strong>Iniciar</strong>.</div>
+      </div>
+      <div class="row">
+        <button id="btnStart">Iniciar</button>
+        <button id="btnReset" class="secondary">Reiniciar</button>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="row">
+      <div style="flex:1">
+        <label>Quantidade de questões</label>
+        <input id="numQuestions" type="number" min="1" value="10"/>
+      </div>
+      <div style="flex:1">
+        <label>Embaralhar ordem</label>
+        <select id="shuffle">
+          <option value="yes" selected>Sim</option>
+          <option value="no">Não</option>
+        </select>
+      </div>
+      <div style="flex:1">
+        <label>Feedback imediato</label>
+        <select id="feedback">
+          <option value="instant" selected>Imediato</option>
+          <option value="end">Somente ao final</option>
+        </select>
+      </div>
+    </div>
+
+    <div style="margin-top:8px" class="small muted">
+      Dica: você pode <span class="pill">Salvar</span> e <span class="pill">Carregar</span> seus bancos de questões pelo painel ao lado.
+    </div>
+
+    <div id="quizArea" style="margin-top:10px"></div>
+
+    <div id="actions" class="right hidden" style="gap:8px">
+      <button id="btnFinish" class="secondary">Finalizar tentativa</button>
+      <button id="btnExportCSV" class="ghost">Exportar resultados (.csv)</button>
+    </div>
+
+    <div id="resultArea" class="hidden" style="margin-top:12px">
+      <div class="score">Resultado: <span id="scoreValue">0</span></div>
+      <div class="small muted" id="detail"></div>
+      <div class="divider"></div>
+      <h3>Revisão</h3>
+      <div id="review"></div>
+    </div>
+  </section>
+
+  <!-- DIREITA: CARGA E GERENCIAMENTO -->
+  <aside class="card">
+    <span class="pill">Banco de Questões</span>
+    <p class="small">Três formas de carregar questões:</p>
+    <ol class="small" style="margin-top:-8px">
+      <li><strong>Colar JSON</strong> no campo abaixo e clicar <em>Carregar</em>;</li>
+      <li><strong>Enviar arquivo</strong> JSON com as questões;</li>
+      <li><strong>Usar o Demo</strong> fornecido.</li>
+    </ol>
+
+    <div class="divider"></div>
+
+    <label for="jsonInput">Cole aqui seu JSON de questões</label>
+    <textarea id="jsonInput" placeholder='Exemplo mínimo:
+[
+  {"type":"mcq","q":"Capital do Brasil?","options":["Rio","Brasília","SP","BH"],"answer":1,"explain":"Desde 1960."},
+  {"type":"tf","q":"0 é número natural.","answer":true,"explain":"Depende da convenção; no Brasil, geralmente sim."},
+  {"type":"short","q":"Fórmula de Bhaskara?","answer":"(-b±√(b²-4ac))/(2a)"}
+]'></textarea>
+    <div class="row">
+      <button id="btnLoad">Carregar</button>
+      <button id="btnClear" class="secondary">Limpar</button>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="row" style="align-items:center">
+      <input type="file" id="fileInput" accept=".json" />
+      <button id="btnLoadFile" class="secondary">Carregar arquivo</button>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="row">
+      <button id="btnDemo" class="ghost">Usar banco Demo</button>
+      <button id="btnSaveLocal" class="ghost">Salvar no navegador</button>
+      <button id="btnLoadLocal" class="ghost">Carregar do navegador</button>
+      <button id="btnClearLocal" class="ghost">Limpar do navegador</button>
+    </div>
+
+    <p class="small muted" style="margin-top:8px">
+      O formato aceito é JSON com campos:
+      <code>type</code> ("mcq" | "tf" | "short"),
+      <code>q</code> (enunciado),
+      <code>options</code> (apenas para mcq),
+      <code>answer</code> (índice, booleano ou string),
+      <code>explain</code> (opcional).
+    </p>
+  </aside>
+</main>
+
+<footer class="card" style="max-width:980px; margin:0 auto 40px; padding:16px">
+  <div class="row" style="align-items:center; justify-content:space-between">
+    <div class="small muted">Este arquivo é auto-contido (HTML + JS + CSS). Você pode enviar para alunos ou abrir no celular.</div>
+    <div class="row">
+      <a class="link small" href="#" id="downloadJSON">Baixar banco (.json)</a>
+      <span class="small muted">|</span>
+      <a class="link small" href="#" id="downloadHTML">Baixar cópia desta página (.html)</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+  // --------- State ---------
+  let bank = [];
+  let quiz = [];
+  let responses = {};
+  let finished = false;
+
+  // Utilities
+  const $ = s => document.querySelector(s);
+  const $$ = s => Array.from(document.querySelectorAll(s));
+  const shuffleArr = (arr) => arr.map(v=>[Math.random(),v]).sort((a,b)=>a[0]-b[0]).map(x=>x[1]);
+
+  function loadBankFromJSON(text){
+    let data = JSON.parse(text);
+    if(!Array.isArray(data)) throw new Error("JSON deve ser um array de questões.");
+    // Validar campos básicos
+    data.forEach((item,i)=>{
+      if(!item.type || !item.q) throw new Error("Questão "+(i+1)+" sem 'type' ou 'q'.");
+      if(item.type==='mcq' && !Array.isArray(item.options)) throw new Error("Questão "+(i+1)+" (mcq) precisa de 'options'.");
+      if(typeof item.answer === 'undefined') throw new Error("Questão "+(i+1)+" sem 'answer'.");
+    });
+    bank = data;
+    // Ajustar limite padrão
+    $("#numQuestions").value = Math.min(10, bank.length || 10);
+    alert("Banco carregado com "+bank.length+" questão(ões).");
+  }
+
+  function renderQuiz(){
+    const wrap = $("#quizArea");
+    wrap.innerHTML = "";
+    responses = {};
+    finished = false;
+    $("#resultArea").classList.add("hidden");
+    $("#actions").classList.remove("hidden");
+
+    quiz.forEach((q, idx)=>{
+      const box = document.createElement("div");
+      box.className = "q";
+      const title = document.createElement("h3");
+      title.innerHTML = "Q"+(idx+1)+". "+q.q + (q.type ? `<span class="badge">${q.type.toUpperCase()}</span>`:"");
+      box.appendChild(title);
+
+      if(q.type === "mcq"){
+        (q._shuffled || q.options).forEach((opt,optIdx)=>{
+          const line = document.createElement("label");
+          line.className = "opt";
+          const input = document.createElement("input");
+          input.type = "radio";
+          input.name = "q"+idx;
+          input.value = optIdx;
+          input.addEventListener("change", ()=>{
+            responses[idx] = parseInt(input.value,10);
+            if($("#feedback").value === "instant"){
+              // reset visuals
+              $$("#q"+idx+" .opt").forEach(el=>el.classList.remove("correct","incorrect"));
+              if(optIdx === q._answerIndex){
+                line.classList.add("correct");
+              } else {
+                line.classList.add("incorrect");
+              }
+            }
+          });
+          const span = document.createElement("span");
+          span.textContent = opt;
+          line.appendChild(input);
+          line.appendChild(span);
+          line.id = "q"+idx;
+          box.appendChild(line);
+        });
+      } else if(q.type === "tf"){
+        ["Verdadeiro","Falso"].forEach((labelTxt, optIdx)=>{
+          const val = optIdx===0;
+          const line = document.createElement("label");
+          line.className = "opt";
+          const input = document.createElement("input");
+          input.type = "radio"; input.name = "q"+idx; input.value = val;
+          input.addEventListener("change", ()=>{
+            responses[idx] = (input.value === "true");
+            if($("#feedback").value === "instant"){
+              $$("#q"+idx+" .opt").forEach(el=>el.classList.remove("correct","incorrect"));
+              if((input.value === "true") === !!q.answer){
+                line.classList.add("correct");
+              } else {
+                line.classList.add("incorrect");
+              }
+            }
+          });
+          const span = document.createElement("span");
+          span.textContent = labelTxt;
+          line.appendChild(input); line.appendChild(span);
+          line.id = "q"+idx;
+          box.appendChild(line);
+        });
+      } else { // short answer
+        const input = document.createElement("input");
+        input.type = "text"; input.style.width="100%";
+        input.placeholder = "Digite sua resposta";
+        input.addEventListener("input", ()=>{
+          responses[idx] = input.value;
+          if($("#feedback").value === "instant"){
+            // não colorimos aqui
+          }
+        });
+        box.appendChild(input);
+      }
+
+      wrap.appendChild(box);
+    });
+  }
+
+  function startQuiz(){
+    if(bank.length===0){
+      alert("Carregue um banco de questões primeiro (JSON, arquivo, ou Demo).");
+      return;
+    }
+    const n = Math.max(1, Math.min(parseInt($("#numQuestions").value||"10",10), bank.length));
+    const doShuffle = $("#shuffle").value === "yes";
+
+    // Selecionar N questões
+    let selected = bank.slice(0);
+    if(doShuffle) selected = shuffleArr(selected);
+    selected = selected.slice(0,n);
+
+    // Preparar MCQ com embaralhamento independente das opções
+    quiz = selected.map(q=>{
+      const copy = JSON.parse(JSON.stringify(q));
+      if(copy.type==="mcq"){
+        const opts = copy.options.slice(0);
+        const correctIndex = copy.answer; // índice original
+        const paired = opts.map((o,i)=>({o, i}));
+        const shuffled = shuffleArr(paired);
+        copy._shuffled = shuffled.map(x=>x.o);
+        copy._answerIndex = shuffled.findIndex(x=>x.i===correctIndex);
+      }
+      return copy;
+    });
+
+    renderQuiz();
+    window.scrollTo({top:0, behavior:"smooth"});
+  }
+
+  function finishQuiz(){
+    if(finished){ return; }
+    finished = true;
+    $("#actions").classList.add("hidden");
+    const fbEndOnly = $("#feedback").value === "end";
+
+    let correct = 0;
+    let total = quiz.length;
+    const review = [];
+
+    quiz.forEach((q,idx)=>{
+      const user = responses[idx];
+      let isCorrect = false;
+      if(q.type==="mcq"){
+        isCorrect = (parseInt(user,10)===q._answerIndex);
+      } else if(q.type==="tf"){
+        isCorrect = (user===!!q.answer);
+      } else {
+        const ans = (q.answer ?? "").toString().trim().toLowerCase();
+        const got = (user ?? "").toString().trim().toLowerCase();
+        isCorrect = (ans.length>0 && got === ans);
+      }
+      if(isCorrect) correct++;
+
+      const correctHuman = (q.type==="mcq") ? q._shuffled[q._answerIndex]
+                          : (q.type==="tf") ? (q.answer ? "Verdadeiro" : "Falso")
+                          : (q.answer ?? "");
+
+      review.push({
+        n: idx+1,
+        q: q.q,
+        user: (q.type==="mcq") ? (q._shuffled[user] ?? "(sem resposta)")
+             : (q.type==="tf") ? (typeof user==="undefined" ? "(sem resposta)" : (user ? "Verdadeiro":"Falso"))
+             : (user ?? "(sem resposta)"),
+        correct: correctHuman,
+        ok: isCorrect,
+        explain: q.explain || ""
+      });
+
+      // colorir opções se feedback só ao final
+      if(fbEndOnly){
+        const container = $("#quizArea").children[idx];
+        if(q.type!=="short"){
+          const labels = container.querySelectorAll(".opt");
+          labels.forEach((lab,i)=>{
+            lab.classList.remove("correct","incorrect");
+            if(q.type==="mcq"){
+              if(i===q._answerIndex) lab.classList.add("correct");
+              if(typeof responses[idx]!=="undefined" && i===responses[idx] && i!==q._answerIndex) lab.classList.add("incorrect");
+            } else {
+              const val = (i===0); // verdadeiro no idx 0
+              if(val === !!q.answer) lab.classList.add("correct");
+              if(typeof responses[idx]!=="undefined" && val !== !!q.answer) lab.classList.add("incorrect");
+            }
+          });
+        }
+      }
+    });
+
+    // Exibir resultados
+    $("#resultArea").classList.remove("hidden");
+    $("#scoreValue").textContent = `${correct}/${total} (${Math.round(100*correct/Math.max(1,total))}%)`;
+    $("#detail").textContent = "Clique nas explicações para revisar conceitos.";
+
+    const rev = $("#review");
+    rev.innerHTML = "";
+    review.forEach(r=>{
+      const row = document.createElement("div");
+      row.className = "q";
+      row.innerHTML = `<div><strong>Q${r.n}.</strong> ${r.q}</div>
+        <div class="small">Sua resposta: <span class="${r.ok?'ok':'danger'}">${r.user}</span> · Correta: <strong>${r.correct}</strong></div>
+        ${r.explain ? `<details style="margin-top:6px"><summary>Explicação</summary><div class="small muted">${r.explain}</div></details>`:""}
+      `;
+      rev.appendChild(row);
+    });
+
+    // guardar última revisão (para CSV)
+    window._lastReview = review;
+  }
+
+  function exportCSV(){
+    const rows = window._lastReview || [];
+    if(rows.length===0){ alert("Finalize uma tentativa para exportar o CSV."); return; }
+    const headers = ["N","Pergunta","SuaResposta","Correta","Acertou","Explicação"];
+    const lines = [headers.join(",")].concat(rows.map(r=>[
+      r.n, `"${(r.q||"").replaceAll('"','""')}"`, `"${(r.user||"").toString().replaceAll('"','""')}"`,
+      `"${(r.correct||"").toString().replaceAll('"','""')}"`, r.ok ? "1":"0", `"${(r.explain||"").replaceAll('"','""')}"`
+    ].join(",")));
+    const blob = new Blob([lines.join("\n")], {type:"text/csv;charset=utf-8;"});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = "resultado_quiz.csv"; a.click();
+    setTimeout(()=>URL.revokeObjectURL(url),1000);
+  }
+
+  function useDemo(){
+    const demo = [
+      {"type":"mcq","q":"(Matemática) A soma dos ângulos internos de um triângulo é:","options":["90°","120°","180°","360°"],"answer":2,"explain":"Em qualquer triângulo, a soma é 180°."},
+      {"type":"tf","q":"(História) A Revolução Francesa começou em 1789.","answer":true,"explain":"Marcou o início de profundas transformações políticas na França."},
+      {"type":"short","q":"(Português) Radical da palavra 'felicidade'","answer":"feliz","explain":"Feliz + sufixo -dade."},
+      {"type":"mcq","q":"(Física) Unidade SI de força:","options":["Joule","Newton","Watt","Pascal"],"answer":1,"explain":"Força no SI é medida em Newton (N)."},
+      {"type":"tf","q":"(Química) Água é composta por dois átomos de hidrogênio e um de oxigênio.","answer":true},
+      {"type":"short","q":"(Matemática) Fórmula de Bhaskara (apenas o denominador)","answer":"2a"},
+      {"type":"mcq","q":"(Geografia) Maior bioma brasileiro por extensão:","options":["Amazônia","Cerrado","Caatinga","Pampas"],"answer":0},
+      {"type":"tf","q":"(Biologia) Mitocôndrias participam da respiração celular.","answer":true},
+      {"type":"mcq","q":"(Matemática) O valor de π é aproximadamente:","options":["2,14","2,71","3,14","3,41"],"answer":2},
+      {"type":"short","q":"(Inglês) Traduza: 'study' (verbo)","answer":"estudar"}
+    ];
+    bank = demo;
+    $("#numQuestions").value = Math.min(10, bank.length);
+    alert("Banco Demo carregado com "+bank.length+" questões.");
+  }
+
+  function saveLocal(){
+    if(bank.length===0){ alert("Nada para salvar. Carregue um banco primeiro."); return; }
+    localStorage.setItem("quiz_bank_json", JSON.stringify(bank));
+    alert("Banco salvo no navegador.");
+  }
+  function loadLocal(){
+    const s = localStorage.getItem("quiz_bank_json");
+    if(!s){ alert("Nenhum banco salvo encontrado."); return; }
+    try{
+      loadBankFromJSON(s);
+    }catch(err){ alert("Erro ao carregar salvo: "+err.message); }
+  }
+  function clearLocal(){
+    localStorage.removeItem("quiz_bank_json");
+    alert("Banco salvo removido do navegador.");
+  }
+
+  function downloadJSON(){
+    if(bank.length===0){ alert("Carregue um banco primeiro."); return; }
+    const blob = new Blob([JSON.stringify(bank,null,2)], {type:"application/json"});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = "banco_questoes.json"; a.click();
+    setTimeout(()=>URL.revokeObjectURL(url),1000);
+  }
+
+  function downloadHTML(){
+    const html = document.documentElement.outerHTML;
+    const blob = new Blob([html], {type:"text/html;charset=utf-8;"});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = "quiz_interativo.html"; a.click();
+    setTimeout(()=>URL.revokeObjectURL(url),1000);
+  }
+
+  // Bindings
+  $("#btnLoad").addEventListener("click", ()=>{
+    try{ loadBankFromJSON($("#jsonInput").value); }
+    catch(err){ alert("Erro: "+err.message); }
+  });
+  $("#btnClear").addEventListener("click", ()=>{ $("#jsonInput").value=""; });
+  $("#btnLoadFile").addEventListener("click", ()=>{
+    const f = $("#fileInput").files[0];
+    if(!f){ alert("Selecione um arquivo JSON."); return; }
+    const reader = new FileReader();
+    reader.onload = (e)=>{
+      try{ loadBankFromJSON(e.target.result); }
+      catch(err){ alert("Erro: "+err.message); }
+    };
+    reader.readAsText(f);
+  });
+  $("#btnDemo").addEventListener("click", useDemo);
+  $("#btnSaveLocal").addEventListener("click", saveLocal);
+  $("#btnLoadLocal").addEventListener("click", loadLocal);
+  $("#btnClearLocal").addEventListener("click", clearLocal);
+
+  $("#btnStart").addEventListener("click", startQuiz);
+  $("#btnReset").addEventListener("click", ()=>{ location.reload(); });
+  $("#btnFinish").addEventListener("click", finishQuiz);
+  $("#btnExportCSV").addEventListener("click", exportCSV);
+
+  $("#downloadJSON").addEventListener("click", (e)=>{ e.preventDefault(); downloadJSON(); });
+  $("#downloadHTML").addEventListener("click", (e)=>{ e.preventDefault(); downloadHTML(); });
+</script>
+</body>
+</html>
