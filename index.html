@@ -1,8 +1,6 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
+<html lang="pt-BR"><head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Quiz Interativo — Estudo por Perguntas e Respostas</title>
 <style>
   :root{
@@ -106,19 +104,19 @@
     <div class="row">
       <div style="flex:1">
         <label>Quantidade de questões</label>
-        <input id="numQuestions" type="number" min="1" value="10"/>
+        <input id="numQuestions" type="number" min="1" value="10">
       </div>
       <div style="flex:1">
         <label>Embaralhar ordem</label>
         <select id="shuffle">
-          <option value="yes" selected>Sim</option>
+          <option value="yes" selected="">Sim</option>
           <option value="no">Não</option>
         </select>
       </div>
       <div style="flex:1">
         <label>Feedback imediato</label>
         <select id="feedback">
-          <option value="instant" selected>Imediato</option>
+          <option value="instant" selected="">Imediato</option>
           <option value="end">Somente ao final</option>
         </select>
       </div>
@@ -128,9 +126,9 @@
       Dica: você pode <span class="pill">Salvar</span> e <span class="pill">Carregar</span> seus bancos de questões pelo painel ao lado.
     </div>
 
-    <div id="quizArea" style="margin-top:10px"></div>
+    <div id="quizArea" style="margin-top:10px"><div class="q"><h3>Q1. 'Soremade' quer dizer 'Até já, nos vemos'.<span class="badge">TF</span></h3><label class="opt" id="q0"><input type="radio" name="q0" value="true"><span>Verdadeiro</span></label><label class="opt" id="q0"><input type="radio" name="q0" value="false"><span>Falso</span></label></div><div class="q"><h3>Q2. Idade mínima para Cinza (10º kyu)?<span class="badge">MCQ</span></h3><label class="opt" id="q1"><input type="radio" name="q1" value="0"><span>6 anos</span></label><label class="opt" id="q1"><input type="radio" name="q1" value="1"><span>4 anos</span></label><label class="opt" id="q1"><input type="radio" name="q1" value="2"><span>7 anos</span></label><label class="opt" id="q1"><input type="radio" name="q1" value="3"><span>5 anos</span></label></div><div class="q"><h3>Q3. Qual é o nome do uniforme do judoca?<span class="badge">MCQ</span></h3><label class="opt" id="q2"><input type="radio" name="q2" value="0"><span>Hakama</span></label><label class="opt" id="q2"><input type="radio" name="q2" value="1"><span>Obi</span></label><label class="opt" id="q2"><input type="radio" name="q2" value="2"><span>Judogui</span></label><label class="opt" id="q2"><input type="radio" name="q2" value="3"><span>Kimono</span></label></div><div class="q"><h3>Q4. 'Sensei' significa professor.<span class="badge">TF</span></h3><label class="opt" id="q3"><input type="radio" name="q3" value="true"><span>Verdadeiro</span></label><label class="opt" id="q3"><input type="radio" name="q3" value="false"><span>Falso</span></label></div><div class="q"><h3>Q5. 'Toketa' significa 'Desatar / imobilização desfeita'.<span class="badge">TF</span></h3><label class="opt" id="q4"><input type="radio" name="q4" value="true"><span>Verdadeiro</span></label><label class="opt" id="q4"><input type="radio" name="q4" value="false"><span>Falso</span></label></div><div class="q"><h3>Q6. Qual posição é destacada para o Mae Ukemi?<span class="badge">MCQ</span></h3><label class="opt" id="q5"><input type="radio" name="q5" value="0"><span>Deitado</span></label><label class="opt" id="q5"><input type="radio" name="q5" value="1"><span>Em pé</span></label><label class="opt" id="q5"><input type="radio" name="q5" value="2"><span>Ajoelhado</span></label><label class="opt" id="q5"><input type="radio" name="q5" value="3"><span>Agachado</span></label></div><div class="q"><h3>Q7. Quem é o fundador do judô?<span class="badge">MCQ</span></h3><label class="opt" id="q6"><input type="radio" name="q6" value="0"><span>Gichin Funakoshi</span></label><label class="opt" id="q6"><input type="radio" name="q6" value="1"><span>Miyamoto Musashi</span></label><label class="opt" id="q6"><input type="radio" name="q6" value="2"><span>Jigoro Kano</span></label><label class="opt" id="q6"><input type="radio" name="q6" value="3"><span>Masahiko Kimura</span></label></div><div class="q"><h3>Q8. Qual ukemi envolve rolamento para frente a partir de pé?<span class="badge">MCQ</span></h3><label class="opt" id="q7"><input type="radio" name="q7" value="0"><span>Yoko Ukemi</span></label><label class="opt" id="q7"><input type="radio" name="q7" value="1"><span>Mae Ukemi</span></label><label class="opt" id="q7"><input type="radio" name="q7" value="2"><span>Mae Mawari Ukemi</span></label><label class="opt" id="q7"><input type="radio" name="q7" value="3"><span>Ushiro Ukemi</span></label></div><div class="q"><h3>Q9. Quais são posições listadas para treinar Yoko Ukemi?<span class="badge">MCQ</span></h3><label class="opt" id="q8"><input type="radio" name="q8" value="0"><span>Sentado, agachado, em pé</span></label><label class="opt" id="q8"><input type="radio" name="q8" value="1"><span>Apenas em pé</span></label><label class="opt" id="q8"><input type="radio" name="q8" value="2"><span>Deitado, agachado, em pé</span></label><label class="opt" id="q8"><input type="radio" name="q8" value="3"><span>Ajoelhado e de pé</span></label></div><div class="q"><h3>Q10. A carência entre faixas indicada é de 6 meses.<span class="badge">TF</span></h3><label class="opt" id="q9"><input type="radio" name="q9" value="true"><span>Verdadeiro</span></label><label class="opt" id="q9"><input type="radio" name="q9" value="false"><span>Falso</span></label></div></div>
 
-    <div id="actions" class="right hidden" style="gap:8px">
+    <div id="actions" class="right" style="gap:8px">
       <button id="btnFinish" class="secondary">Finalizar tentativa</button>
       <button id="btnExportCSV" class="ghost">Exportar resultados (.csv)</button>
     </div>
@@ -157,12 +155,12 @@
     <div class="divider"></div>
 
     <label for="jsonInput">Cole aqui seu JSON de questões</label>
-    <textarea id="jsonInput" placeholder='Exemplo mínimo:
+    <textarea id="jsonInput" placeholder="Exemplo mínimo:
 [
-  {"type":"mcq","q":"Capital do Brasil?","options":["Rio","Brasília","SP","BH"],"answer":1,"explain":"Desde 1960."},
-  {"type":"tf","q":"0 é número natural.","answer":true,"explain":"Depende da convenção; no Brasil, geralmente sim."},
-  {"type":"short","q":"Fórmula de Bhaskara?","answer":"(-b±√(b²-4ac))/(2a)"}
-]'></textarea>
+  {&quot;type&quot;:&quot;mcq&quot;,&quot;q&quot;:&quot;Capital do Brasil?&quot;,&quot;options&quot;:[&quot;Rio&quot;,&quot;Brasília&quot;,&quot;SP&quot;,&quot;BH&quot;],&quot;answer&quot;:1,&quot;explain&quot;:&quot;Desde 1960.&quot;},
+  {&quot;type&quot;:&quot;tf&quot;,&quot;q&quot;:&quot;0 é número natural.&quot;,&quot;answer&quot;:true,&quot;explain&quot;:&quot;Depende da convenção; no Brasil, geralmente sim.&quot;},
+  {&quot;type&quot;:&quot;short&quot;,&quot;q&quot;:&quot;Fórmula de Bhaskara?&quot;,&quot;answer&quot;:&quot;(-b±√(b²-4ac))/(2a)&quot;}
+]"></textarea>
     <div class="row">
       <button id="btnLoad">Carregar</button>
       <button id="btnClear" class="secondary">Limpar</button>
@@ -171,7 +169,7 @@
     <div class="divider"></div>
 
     <div class="row" style="align-items:center">
-      <input type="file" id="fileInput" accept=".json" />
+      <input type="file" id="fileInput" accept=".json">
       <button id="btnLoadFile" class="secondary">Carregar arquivo</button>
     </div>
 
@@ -524,5 +522,6 @@
   $("#downloadJSON").addEventListener("click", (e)=>{ e.preventDefault(); downloadJSON(); });
   $("#downloadHTML").addEventListener("click", (e)=>{ e.preventDefault(); downloadHTML(); });
 </script>
-</body>
-</html>
+
+
+</body></html>
